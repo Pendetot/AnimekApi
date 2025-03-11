@@ -54,11 +54,6 @@ npm run dev
 
 ## Usage Examples
 
-### Get Latest Anime
-```
-GET http://localhost:1408/api/home
-```
-
 ### Get Anime Episode Details
 ```
 GET http://localhost:1408/api/detail?slug=2025/03/a-war-between-humans-and-ai-episode-10
@@ -114,3 +109,7 @@ To prevent abuse, the API has rate limiting in place:
 ## Disclaimer
 
 This API is for educational purposes only. Please respect the AnoBoy website's terms of service and robots.txt file. Consider adding appropriate delays between requests and do not overload their servers.
+
+## License
+
+MIT
