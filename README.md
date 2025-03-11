@@ -114,7 +114,3 @@ To prevent abuse, the API has rate limiting in place:
 ## Disclaimer
 
 This API is for educational purposes only. Please respect the AnoBoy website's terms of service and robots.txt file. Consider adding appropriate delays between requests and do not overload their servers.
-
-## License
-
-MIT
