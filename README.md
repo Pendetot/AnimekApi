@@ -13,7 +13,7 @@ A Node.js API for scraping and serving anime data from AnoBoy website.
 
 ## Getting Started
 
-### Option 1: Clone from GitHub
+### Clone from GitHub
 
 ```bash
 git clone https://github.com/Pendetot/AnimekApi.git
