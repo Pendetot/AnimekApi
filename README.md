@@ -4,41 +4,43 @@ A Node.js API for scraping and serving anime data from AnoBoy website.
 
 ## Features
 
-- Scrapes latest anime from the homepage
 - Fetches anime episode details
 - Retrieves complete anime list
 - Gets episode list for specific anime
-- Fetches anime broadcast schedule
+- Fetches anime broadcast schedule with images
 - Response caching to reduce website load and improve performance
 - Rate limiting to prevent abuse
 
-## API Endpoints
+## Getting Started
 
-| Endpoint | Description | Query Parameters |
-|----------|-------------|------------------|
-| `GET /api` | API information and available endpoints | None |
-| `GET /api/detail` | Get anime episode details | `url` (required): Anime episode URL |
-| `GET /api/list` | Get complete anime list | None |
-| `GET /api/episodes` | Get episode list for an anime | `url` (required): Anime series URL |
-| `GET /api/schedule` | Get anime broadcast schedule | None |
+### Option 1: Clone from GitHub
 
-## Installation
-
-1. Clone the repository:
 ```bash
 git clone https://github.com/Pendetot/AnimekApi.git
 cd AnimekApi
+npm install
+npm start
+```
+
+### Option 2: Manual Setup
+
+1. Create the project structure:
+```bash
+mkdir -p anoboy-api && cd anoboy-api
+mkdir -p src/config src/scraper src/api/routes src/api/controllers src/api/middleware src/utils
 ```
 
 2. Install dependencies:
 ```bash
-npm install
+npm init -y
+npm pkg set scripts.start="node src/index.js" scripts.dev="nodemon src/index.js"
+npm install axios cheerio cors dotenv express express-rate-limit helmet morgan node-cache user-agents
+npm install --save-dev nodemon
 ```
 
-3. Create a `.env` file in the root directory (or use the existing one):
-```
-PORT=1408
-NODE_ENV=development
+3. Create environment file:
+```bash
+echo -e "PORT=1408\nNODE_ENV=development" > .env
 ```
 
 4. Start the server:
@@ -50,6 +52,16 @@ For development with auto-restart:
 ```bash
 npm run dev
 ```
+
+## API Endpoints
+
+| Endpoint | Description | Query Parameters |
+|----------|-------------|------------------|
+| `GET /api` | API information and available endpoints | None |
+| `GET /api/detail` | Get anime episode details | `slug` or `path` (required): Anime episode slug or path |
+| `GET /api/list` | Get complete anime list | None |
+| `GET /api/episodes` | Get episode list for an anime | `title`, `slug`, or `path` (required): Anime title, slug or path |
+| `GET /api/schedule` | Get anime broadcast schedule with images | None |
 
 ## Usage Examples
 
@@ -72,7 +84,7 @@ or
 GET http://localhost:1408/api/episodes?slug=anime/a-war-between-humans-and-ai
 ```
 
-### Get Anime Broadcast Schedule
+### Get Anime Broadcast Schedule with Images
 ```
 GET http://localhost:1408/api/schedule
 ```
@@ -81,7 +93,6 @@ GET http://localhost:1408/api/schedule
 
 The API implements caching to improve performance and reduce load on the AnoBoy website. Cache duration varies by endpoint:
 
-- `/api/home`: 30 minutes (default)
 - `/api/detail`: 30 minutes (default)
 - `/api/list`: 1 hour
 - `/api/episodes`: 30 minutes (default)
