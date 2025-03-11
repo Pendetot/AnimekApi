@@ -22,32 +22,6 @@ npm install
 npm start
 ```
 
-### Option 2: Manual Setup
-
-1. Create the project structure:
-```bash
-mkdir -p anoboy-api && cd anoboy-api
-mkdir -p src/config src/scraper src/api/routes src/api/controllers src/api/middleware src/utils
-```
-
-2. Install dependencies:
-```bash
-npm init -y
-npm pkg set scripts.start="node src/index.js" scripts.dev="nodemon src/index.js"
-npm install axios cheerio cors dotenv express express-rate-limit helmet morgan node-cache user-agents
-npm install --save-dev nodemon
-```
-
-3. Create environment file:
-```bash
-echo -e "PORT=1408\nNODE_ENV=development" > .env
-```
-
-4. Start the server:
-```bash
-npm start
-```
-
 For development with auto-restart:
 ```bash
 npm run dev
