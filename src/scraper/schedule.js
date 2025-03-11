@@ -18,18 +18,73 @@ const scrapeAnimeImage = async (url) => {
     // Send HTTP request
     const response = await axios.get(url, {
       headers,
-      timeout: REQUEST_TIMEOUT
+      timeout: REQUEST_TIMEOUT * 2 // Double timeout for image scraping
     });
     
     // Parse HTML content
     const $ = cheerio.load(response.data);
     
-    // Look for the main image
-    const mainImage = $('amp-img').first();
-    if (mainImage.length && mainImage.attr('src')) {
-      return mainImage.attr('src');
+    // Try multiple selectors in order of specificity
+    const selectors = [
+      // Main content image - specific to the layout you showed
+      '.column-three-fourth amp-img',
+      // Featured image that might be in a different position
+      'amp-img[width="640"][height="360"]',
+      // Try to find image in the content area
+      '.column-three-fourth img', 
+      // Try any amp-img with dimensions that suggest it's a content image
+      'amp-img[width][height]',
+      // Default fallback - any amp-img
+      'amp-img',
+      // Last resort - any img
+      'img'
+    ];
+    
+    // Try each selector
+    for (const selector of selectors) {
+      const element = $(selector).first();
+      if (element.length && element.attr('src')) {
+        const src = element.attr('src');
+        // Make sure the URL is complete
+        if (src.startsWith('http')) {
+          return src;
+        } else if (src.startsWith('/')) {
+          // If it's a relative URL, make it absolute
+          return `${BASE_URL}${src}`;
+        }
+      }
     }
     
+    // If we couldn't find an image with the selectors, try the meta tags
+    const ogImage = $('meta[property="og:image"]').attr('content');
+    if (ogImage) {
+      return ogImage;
+    }
+    
+    // If we still can't find an image, look for URLs in the HTML that appear to be images
+    const htmlStr = $.html();
+    const imgRegex = /https?:\/\/[^"']+\.(jpg|jpeg|png|gif|webp)/gi;
+    const matches = htmlStr.match(imgRegex);
+    if (matches && matches.length > 0) {
+      // Find the first URL that contains the word "01as" which is common in the images you showed
+      const animeImg = matches.find(url => url.includes('01as'));
+      if (animeImg) {
+        return animeImg;
+      }
+      // Otherwise just return the first one that looks like a content image (not a UI element)
+      // Filter out common UI images
+      const contentImages = matches.filter(url => 
+        !url.includes('newlogo') && 
+        !url.includes('discord') && 
+        !url.includes('qq288') &&
+        !url.includes('icon')
+      );
+      if (contentImages.length > 0) {
+        return contentImages[0];
+      }
+    }
+    
+    // If we really can't find anything, return null
     return null;
   } catch (error) {
     console.error(`Error fetching anime image from ${url}: ${error.message}`);
@@ -39,8 +94,8 @@ const scrapeAnimeImage = async (url) => {
 
 /**
  * Extract links and anime data from schedule page
- * @param {string} schedulePageHtml - HTML content of the schedule page
- * @returns {Object} Extracted schedule data with anime links
+ * @param {Object} $ - Cheerio object
+ * @returns {Array} Extracted schedule data with anime links
  */
 const extractScheduleData = ($) => {
   // Find all day sections (h1 in div.unduhan)
@@ -90,8 +145,8 @@ const extractScheduleData = ($) => {
 };
 
 /**
- * Scrape the anime broadcast schedule from jadwal.php page
- * @returns {Promise<Object>} Object containing seasonal anime and anoboy internal schedule
+ * Scrape the anime broadcast schedule from jadwal page
+ * @returns {Promise<Object>} Object containing schedule data with images
  */
 const scrapeJadwal = async () => {
   try {
@@ -100,7 +155,7 @@ const scrapeJadwal = async () => {
       'User-Agent': getRandomUserAgent() || USER_AGENT
     };
     
-    // URL to scrape (changed to the schedule page from your example)
+    // URL to scrape (schedule page from your example)
     const url = `${BASE_URL}/2015/05/anime-subtitle-indonesia-ini-adalah-arsip-file-kami/`;
     
     // Send HTTP request
@@ -115,21 +170,30 @@ const scrapeJadwal = async () => {
     // Extract schedule data
     const scheduleData = extractScheduleData($);
     
-    // Fetch images for anime (limit to first 3 anime per day to avoid too many requests)
+    // Fetch images for all anime with improved error handling and retry logic
     for (const day of scheduleData) {
-      const animesToFetch = day.anime_list.slice(0, 3); // Limit to first 3 anime per day
-      
-      for (const anime of animesToFetch) {
+      for (const anime of day.anime_list) {
         if (anime.url) {
-          const imageUrl = await scrapeAnimeImage(anime.url);
-          
-          if (imageUrl) {
-            // Update all anime with this title to have the same image
-            day.anime_list.forEach(entry => {
-              if (entry.title === anime.title) {
-                entry.image_url = imageUrl;
+          try {
+            // Try to get the image
+            const imageUrl = await scrapeAnimeImage(anime.url);
+            if (imageUrl) {
+              anime.image_url = imageUrl;
+            } else {
+              // Retry with a delay if first attempt failed
+              await new Promise(resolve => setTimeout(resolve, 500)); // Wait 500ms
+              const retryImageUrl = await scrapeAnimeImage(anime.url);
+              if (retryImageUrl) {
+                anime.image_url = retryImageUrl;
+              } else {
+                // If we still failed, just use a default image
+                anime.image_url = 'https://ww1.anoboy.app/wp-content/uploads/2019/02/cropped-512x512-192x192.png'; // Default AnoBoy logo
               }
-            });
+            }
+          } catch (err) {
+            console.error(`Error fetching image for ${anime.title}: ${err.message}`);
+            // Use default image on error
+            anime.image_url = 'https://ww1.anoboy.app/wp-content/uploads/2019/02/cropped-512x512-192x192.png'; // Default AnoBoy logo
           }
         }
       }
