@@ -27,8 +27,8 @@ A Node.js API for scraping and serving anime data from AnoBoy website.
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/anoboy-api.git
-cd anoboy-api
+git clone https://github.com/Pendetot/AnimekApi.git
+cd AnimekApi
 ```
 
 2. Install dependencies:
@@ -114,3 +114,7 @@ To prevent abuse, the API has rate limiting in place:
 ## Disclaimer
 
 This API is for educational purposes only. Please respect the AnoBoy website's terms of service and robots.txt file. Consider adding appropriate delays between requests and do not overload their servers.
+
+## License
+
+MIT
