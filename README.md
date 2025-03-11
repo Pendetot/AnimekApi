@@ -17,7 +17,6 @@ A Node.js API for scraping and serving anime data from AnoBoy website.
 | Endpoint | Description | Query Parameters |
 |----------|-------------|------------------|
 | `GET /api` | API information and available endpoints | None |
-| `GET /api/home` | Get latest anime from homepage | None |
 | `GET /api/detail` | Get anime episode details | `url` (required): Anime episode URL |
 | `GET /api/list` | Get complete anime list | None |
 | `GET /api/episodes` | Get episode list for an anime | `url` (required): Anime series URL |
